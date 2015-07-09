@@ -27,5 +27,7 @@ After executing a test, you should either refresh the page, or close and reopen 
 
 `Load and Dump Module` - Load an additional module and dump it (see all available [here](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76))
 
+Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks, and convert them to binary.
+
 ### Filesystem
 `Open /dev/` - Get a list of devices
