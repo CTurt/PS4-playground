@@ -8,7 +8,7 @@ You should clone the repo and upload it your own server to have module dumping c
 
     git clone git://github.com/CTurt/PS4-playground.git
 
-You can also download a zip of the latest source [here](https://codeload.github.com/CTurt/PS4-playground/zip/master).
+You can also download a zip of the latest source [here](https://github.com/CTurt/PS4-playground/archive/gh-pages.zip).
 
 ## Usage
 Although this is this primarily a framework to help write and execute ROP chains, PS4-playground comes with several experiments for you to try:
