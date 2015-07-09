@@ -1,0 +1,61 @@
+*, *:before, *:after {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 32px;
+	
+	background-color: rgb(255, 255, 255);
+	font-family: Arial, sans-serif;
+	color: rgb(0, 0, 0);
+}
+
+.header {
+	text-align: center;
+}
+
+hr {
+	margin-bottom: 32px;
+}
+
+.box-container {
+	width: 100%;
+}
+
+.box {
+	/*min-width: 200px;
+	min-height: 200px;*/
+	padding: 8px;
+	margin: 8px;
+	display: inline-block;
+	vertical-align: top;
+	border: 1px solid black;
+}
+
+h1, h2, h3 {
+	margin-top: 0;
+	margin-bottom: 16px;
+	padding: 0;
+	font-weight: 300;
+	line-height: 100%;
+	display: block;
+}
+h1 { font-size: 38px; }
+h2 { font-size: 26px; }
+h3 { font-size: 20px; }
+
+button {
+	font-size: 15px;
+}
