@@ -94,8 +94,9 @@ function dumpModule() {
 		var moduleSize = codeSize + dataSize;
 		
 		logAdd("Dumping " + moduleName);
+		logAdd("Size: " + moduleSize / 1024 + "KB");
 		
-		//dump(moduleBase, moduleSize / 0x1000, 0x1000);
+		dump(moduleName, moduleBase, moduleSize);
 	}, 1);
 }
 
@@ -128,8 +129,9 @@ function loadDumpModule() {
 		var moduleSize = codeSize + dataSize;
 		
 		logAdd("Dumping " + moduleName);
+		logAdd("Size: " + moduleSize / 1024 + "KB");
 		
-		dump(moduleBase, moduleSize / 0x1000, 0x1000);
+		dump(moduleName, moduleBase, moduleSize);
 	}, 1);
 }
 

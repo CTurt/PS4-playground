@@ -1,4 +1,4 @@
-import glob, sys, time, struct
+import os, glob, sys, time, struct
 
 
 def addr_compare(x, y):
@@ -13,9 +13,8 @@ def addr_compare(x, y):
     return int(a1 - a2)
 
 
-def get_addr(path):
-    return (path.split("-")[1])
-
+def get_name(path):
+    return (path.split("-")[0])
 
 
 def append_file(inpath, outpath):
@@ -42,15 +41,10 @@ sfiles = sorted(files, cmp=addr_compare)
 
 #print sfiles
 
-stamp = time.time()
-start_addr = int(get_addr(sfiles[0]), 16)
-dump_name = str(stamp) + "_0x" + get_addr(sfiles[0]) + ".sprx"
-last_addr = start_addr
-print get_addr(sfiles[0])
+dump_name = get_name(sfiles[0])
 
 for fname in sfiles:
-    if start_addr != int(get_addr(fname), 16):
-        dump_name = str(stamp) + "_0x" + get_addr(fname) + ".sprx"
+    dump_name = get_name(fname)
     append_file(fname, dump_name)
 
         
