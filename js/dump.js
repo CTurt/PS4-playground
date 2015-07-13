@@ -1,5 +1,6 @@
-function dump(base, chunkCount, chunkSize) {
-	chunkSize /= 4;
+function dump(name, base, size) {
+	var chunkSize = 0x1000 / 4;
+	var chunkCount = size / chunkSize;
 	
 	var xx = base;
 	setBase(xx);
@@ -13,7 +14,7 @@ function dump(base, chunkCount, chunkSize) {
 		
 		dump_data += u32[(chunkSize - 1)].toString(16);
 		
-		fname = "dump.php?name=dump-0x" + xx.toString(16) + "-" + bb;
+		fname = "dump.php?name=" + name + "-" + bb;
 		$.ajax({
 			async : false,
 			url : fname,
