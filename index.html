@@ -70,13 +70,15 @@ function getLoadedModules() {
 }
 
 function dumpModule() {
-	var moduleNumber = parseInt(document.getElementById("loadedModuleID").value);
+	var moduleNumberV = document.getElementById("loadedModuleID").value;
 	
-	if(!moduleNumber) {
+	if(!moduleNumberV) {
 		logAdd("Enter a module number");
 		document.getElementById("moduleNumber").focus();
 		return;
 	}
+	
+	var moduleNumber = parseInt(moduleNumberV);
 	
 	var chain = new rop();
 	
@@ -104,13 +106,15 @@ function dumpModule() {
 }
 
 function loadDumpModule() {
-	var moduleNumber = parseInt(document.getElementById("moduleID").value);
+	var moduleNumberV = document.getElementById("moduleID").value;
 	
-	if(!moduleNumber) {
+	if(!moduleNumberV) {
 		logAdd("Enter a module number");
 		document.getElementById("moduleNumber").focus();
 		return;
 	}
+	
+	var moduleNumber = parseInt(moduleNumberV);
 	
 	var chain = new rop();
 	
