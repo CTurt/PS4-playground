@@ -60,8 +60,11 @@ function getLoadedModules() {
 		chain.logVariable(0);
 		
 		var count = getU64from(countAddress);
+		
 		for(var index = 0; index < count; index++) {
-			logAdd("Module: 0x" + getU32from(modulesAddress + index * 4).toString(16));
+			var m = getU32from(modulesAddress + index * 4);
+			
+			logAdd("Module: 0x" + m.toString(16) + " (" + m.toString() + ")");
 		}
 	}, 1);
 }
