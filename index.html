@@ -28,6 +28,19 @@ function getpid() {
 	}, 1);
 }
 
+function getThreadID() {
+	var chain = new rop();
+	
+	chain.syscall("getThreadID", 557, chain.data);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		chain.logVariable(0);
+	}, 1);
+}
+
 function getlogin() {
 	var chain = new rop();
 	
@@ -180,6 +193,12 @@ function openDev() {
 				
 				<div>
 					<button onclick="getpid()">Get PID</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="getThreadID()">Get Thread ID</button>
 				</div>
 				
 				<br>
