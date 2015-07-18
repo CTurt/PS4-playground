@@ -57,6 +57,21 @@ function getlogin() {
 	}, 1);
 }
 
+function getSandboxDirectory() {
+	var chain = new rop();
+	
+	setU64to(chain.data, 10);
+	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute();
+	
+	setTimeout(function() {
+		var name = readString(chain.data + 8);
+		logAdd(name);
+	}, 1);
+}
+
 function getLoadedModules() {
 	var chain = new rop();
 	
@@ -205,6 +220,12 @@ function openDev() {
 				
 				<div>
 					<button onclick="getlogin()">Get Login</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="getSandboxDirectory()">Get Sandbox Directory</button>
 				</div>
 			</div>
 			
