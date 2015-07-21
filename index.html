@@ -21,11 +21,9 @@ function getpid() {
 	chain.syscall("getpid", 20);
 	chain.write_rax_ToVariable(0);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		chain.logVariable(0);
-	}, 1);
+	});
 }
 
 function getThreadID() {
@@ -34,11 +32,9 @@ function getThreadID() {
 	chain.syscall("getThreadID", 557, chain.data);
 	chain.write_rax_ToVariable(0);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		chain.logVariable(0);
-	}, 1);
+	});
 }
 
 function getlogin() {
@@ -46,15 +42,13 @@ function getlogin() {
 	
 	chain.syscall("getlogin", 49, chain.data, 17);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		var name = readString(chain.data);
 		var pointer = getU32from(chain.data + 8);
 		
 		logAdd("Name: " + name);
 		logAdd("Leaked pointer: 0x" + pointer.toString(16));
-	}, 1);
+	});
 }
 
 function getSandboxDirectory() {
@@ -64,12 +58,10 @@ function getSandboxDirectory() {
 	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
 	chain.write_rax_ToVariable(0);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		var name = readString(chain.data + 8);
 		logAdd(name);
-	}, 1);
+	});
 }
 
 function getLoadedModules() {
@@ -81,9 +73,7 @@ function getLoadedModules() {
 	chain.syscall("getLoadedModules", 592, modulesAddress, 256, countAddress);
 	chain.write_rax_ToVariable(0);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		chain.logVariable(0);
 		
 		var count = getU64from(countAddress);
@@ -93,7 +83,7 @@ function getLoadedModules() {
 			
 			logAdd("Module: 0x" + m.toString(16) + " (" + m.toString() + ")");
 		}
-	}, 1);
+	});
 }
 
 function dumpModule() {
@@ -114,9 +104,7 @@ function dumpModule() {
 	
 	chain.syscall("getModuleInfo", 0, 593, moduleNumber, moduleInfoAddress);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		var moduleName = readString(moduleInfoAddress + 0x8);
 		var codeBase = getU64from(moduleInfoAddress + 0x108);
 		var codeSize = getU32from(moduleInfoAddress + 0x110);
@@ -129,7 +117,7 @@ function dumpModule() {
 		logAdd("Size: " + moduleSize / 1024 + "KB");
 		
 		dump(moduleName, moduleBase, moduleSize);
-	}, 1);
+	});
 }
 
 function loadDumpModule() {
@@ -151,9 +139,7 @@ function loadDumpModule() {
 	chain.call("loadModule", libSysmodule, 0x1850, moduleNumber, 0, 0, 0);
 	chain.syscall("getModuleInfo", 0, 593, 0x65, moduleInfoAddress);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		var moduleName = readString(moduleInfoAddress + 0x8);
 		var codeBase = getU64from(moduleInfoAddress + 0x108);
 		var codeSize = getU32from(moduleInfoAddress + 0x110);
@@ -166,7 +152,7 @@ function loadDumpModule() {
 		logAdd("Size: " + moduleSize / 1024 + "KB");
 		
 		dump(moduleName, moduleBase, moduleSize);
-	}, 1);
+	});
 }
 
 function openDev() {
@@ -182,11 +168,9 @@ function openDev() {
 	chain.read_rdi_FromVariable(0);
 	chain.syscall("read", 3, undefined, contents, 1028);
 	
-	chain.execute();
-	
-	setTimeout(function() {
+	chain.execute(function() {
 		logAdd(hexDump(contents, 256));
-	}, 1);
+	});
 }
 
 		</script>
