@@ -18,6 +18,8 @@ After executing a test, you should either refresh the page, or close and reopen 
 ### Syscalls
 `Get PID` - Get process ID
 
+`Get Thread ID` - Get thread ID
+
 `Get Login` - Get login name and leak a kernel pointer
 
 ### Modules
@@ -27,7 +29,9 @@ After executing a test, you should either refresh the page, or close and reopen 
 
 `Load and Dump Module` - Load an additional module and dump it (see all available [here](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76))
 
-Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks, and convert them to binary.
+Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks, and convert to binary.
 
 ### Filesystem
 `Open /dev/` - Get a list of devices
+
+`Get Sandbox Directory` - Get the name of the current sandbox directory (10 random characters which change each reboot)
