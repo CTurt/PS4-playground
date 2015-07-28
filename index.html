@@ -173,6 +173,24 @@ function openDev() {
 	});
 }
 
+function getStackProtection() {
+	var chain = new rop();
+	
+	var info = chain.data;
+	
+	chain.syscall("getMemoryInfo", 547, stack_base, info);
+	
+	chain.execute(function() {
+		var base = getU64from(info + 0x0);
+		var size = getU64from(info + 0x8) - base;
+		var protection = getU32from(info + 0x10);
+		
+		logAdd("Stack base: 0x" + base.toString(16));
+		logAdd("Stack size: 0x" + size.toString(16));
+		logAdd("Stack protection: 0x" + protection.toString(16));
+	});
+}
+
 		</script>
 	</head>
 	
@@ -242,6 +260,13 @@ function openDev() {
 				
 				<div>
 					<button onclick="getSandboxDirectory()">Get Sandbox Directory</button>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Memory</h2>
+				<div>
+					<button onclick="getStackProtection()">Get Stack Protection</button>
 				</div>
 			</div>
 		</div>
