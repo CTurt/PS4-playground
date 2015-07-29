@@ -39,6 +39,7 @@ hr {
 	min-height: 200px;*/
 	padding: 8px;
 	margin: 8px;
+	margin-bottom: 16px;
 	display: inline-block;
 	vertical-align: top;
 	border: 1px solid black;
