@@ -12,14 +12,15 @@
 		<script type="text/javascript" src="js/gadgets.js"></script>
 		<script type="text/javascript">
 
+var chain;
+
 function load() {
 	document.getElementById("environment").innerHTML = getEnvironmentInfo();
 	exploit();
+	chain = new rop();
 }
 
 function getpid() {
-	var chain = new rop();
-	
 	chain.syscall("getpid", 20);
 	chain.write_rax_ToVariable(0);
 	
@@ -29,8 +30,6 @@ function getpid() {
 }
 
 function getlogin() {
-	var chain = new rop();
-	
 	chain.syscall("getlogin", 49, chain.data, 17);
 	
 	chain.execute(function() {
@@ -51,8 +50,6 @@ function getLibkernelOffset() {
 		return;
 	}
 	
-	var chain = new rop();
-	
 	var result = chain.data;
 	var name = chain.data + 8;
 	
@@ -65,8 +62,6 @@ function getLibkernelOffset() {
 }
 
 function getSandboxDirectory() {
-	var chain = new rop();
-	
 	setU64to(chain.data, 10);
 	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
 	chain.write_rax_ToVariable(0);
@@ -78,8 +73,6 @@ function getSandboxDirectory() {
 }
 
 function getLoadedModules() {
-	var chain = new rop();
-	
 	var countAddress = chain.data;
 	var modulesAddress = chain.data + 8;
 	
@@ -109,8 +102,6 @@ function dumpModule() {
 	}
 	
 	var moduleNumber = parseInt(moduleNumberV);
-	
-	var chain = new rop();
 	
 	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
@@ -143,8 +134,6 @@ function loadModule() {
 	}
 	
 	var moduleNumber = parseInt(moduleNumberV);
-	
-	var chain = new rop();
 	
 	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
@@ -179,8 +168,6 @@ function loadDumpModule() {
 	
 	var moduleNumber = parseInt(moduleNumberV);
 	
-	var chain = new rop();
-	
 	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
 	
@@ -204,8 +191,6 @@ function loadDumpModule() {
 }
 
 function openDev() {
-	var chain = new rop();
-	
 	var directory = chain.data;
 	var contents = chain.data;
 	
@@ -222,8 +207,6 @@ function openDev() {
 }
 
 function getStackProtection() {
-	var chain = new rop();
-	
 	var info = chain.data;
 	
 	chain.syscall("getMemoryInfo", 547, stack_base, info);
@@ -240,8 +223,6 @@ function getStackProtection() {
 }
 
 function getStackName() {
-	var chain = new rop();
-	
 	var info = chain.data;
 	
 	chain.syscall("getMemoryInfo", 572, stack_base, 0, info, 0x40);
