@@ -18,8 +18,6 @@ After executing a test, you should either refresh the page, or close and reopen 
 ### Syscalls
 `Get PID` - Get process ID
 
-`Get Thread ID` - Get thread ID
-
 `Get Login` - Get login name and leak a kernel pointer
 
 ### Modules
