@@ -41,26 +41,6 @@ function getlogin() {
 	});
 }
 
-function getLibkernelOffset() {
-	var functionName = document.getElementById("functionName").value;
-	
-	if(!functionName) {
-		logAdd("Enter a function name");
-		document.getElementById("functionName").focus();
-		return;
-	}
-	
-	var result = chain.data;
-	var name = chain.data + 8;
-	
-	writeString(name, functionName);
-	chain.syscall("getFunctionAddressByName", 591, LIBKERNEL, name, result);
-	
-	chain.execute(function() {
-		logAdd(readString(name) + " libkernel offset = 0x" + (getU64from(result) - module_infos[LIBKERNEL].image_base).toString(16));
-	});
-}
-
 function getSandboxDirectory() {
 	setU64to(chain.data, 10);
 	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
@@ -235,6 +215,26 @@ function getStackName() {
 		logAdd("Stack base: 0x" + base.toString(16));
 		logAdd("Stack size: 0x" + size.toString(16));
 		logAdd("Stack name: " + name);
+	});
+}
+
+function getLibkernelOffset() {
+	var functionName = document.getElementById("functionName").value;
+	
+	if(!functionName) {
+		logAdd("Enter a function name");
+		document.getElementById("functionName").focus();
+		return;
+	}
+	
+	var result = chain.data;
+	var name = chain.data + 8;
+	
+	writeString(name, functionName);
+	chain.syscall("getFunctionAddressByName", 591, LIBKERNEL, name, result);
+	
+	chain.execute(function() {
+		logAdd(readString(name) + " libkernel offset = 0x" + (getU64from(result) - module_infos[LIBKERNEL].image_base).toString(16));
 	});
 }
 
