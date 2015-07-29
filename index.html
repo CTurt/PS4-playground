@@ -120,6 +120,41 @@ function dumpModule() {
 	});
 }
 
+function loadModule() {
+	var moduleNumberV = document.getElementById("moduleID").value;
+	
+	if(!moduleNumberV) {
+		logAdd("Enter a module number");
+		document.getElementById("moduleNumber").focus();
+		return;
+	}
+	
+	var moduleNumber = parseInt(moduleNumberV);
+	
+	var chain = new rop();
+	
+	var moduleInfoAddress = chain.data;
+	setU64to(moduleInfoAddress, 0x160);
+	
+	chain.call("loadModule", LIBSYSMODULE, 0x1850, moduleNumber, 0, 0, 0);
+	chain.syscall("getModuleInfo", 0, 593, 0x65, moduleInfoAddress);
+	
+	chain.execute(function() {
+		var moduleName = readString(moduleInfoAddress + 0x8);
+		var codeBase = getU64from(moduleInfoAddress + 0x108);
+		var codeSize = getU32from(moduleInfoAddress + 0x110);
+		var dataBase = getU64from(moduleInfoAddress + 0x118);
+		var dataSize = getU32from(moduleInfoAddress + 0x120);
+		var moduleBase = codeBase;
+		var moduleSize = codeSize + dataSize;
+		
+		logAdd("Loaded " + moduleName);
+		logAdd("Size: " + moduleSize / 1024 + "KB");
+		logAdd("This module will only be loaded during this process, please now refresh to avoid a crash. Upon restart you must reload any extra module.");
+		logAdd("You can only load a single extra module, if you wish to load a different module restart the browser process.");
+	});
+}
+
 function loadDumpModule() {
 	var moduleNumberV = document.getElementById("moduleID").value;
 	
@@ -136,7 +171,7 @@ function loadDumpModule() {
 	var moduleInfoAddress = chain.data;
 	setU64to(moduleInfoAddress, 0x160);
 	
-	chain.call("loadModule", libSysmodule, 0x1850, moduleNumber, 0, 0, 0);
+	chain.call("loadModule", LIBSYSMODULE, 0x1850, moduleNumber, 0, 0, 0);
 	chain.syscall("getModuleInfo", 0, 593, 0x65, moduleInfoAddress);
 	
 	chain.execute(function() {
@@ -263,6 +298,7 @@ function getStackName() {
 				<div>
 					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
 					<input type="number" id="moduleID" />
+					<button onclick="loadModule()">Load Module</button>
 					<button onclick="loadDumpModule()">Load and Dump Module</button>
 				</div>
 			</div>
