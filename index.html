@@ -26,17 +26,6 @@ function getpid() {
 	});
 }
 
-function getThreadID() {
-	var chain = new rop();
-	
-	chain.syscall("getThreadID", 557, chain.data);
-	chain.write_rax_ToVariable(0);
-	
-	chain.execute(function() {
-		chain.logVariable(0);
-	});
-}
-
 function getlogin() {
 	var chain = new rop();
 	
@@ -263,12 +252,6 @@ function getStackName() {
 				
 				<div>
 					<button onclick="getpid()">Get PID</button>
-				</div>
-				
-				<br>
-				
-				<div>
-					<button onclick="getThreadID()">Get Thread ID</button>
 				</div>
 				
 				<br>
