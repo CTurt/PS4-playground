@@ -205,7 +205,7 @@ function getStackProtection() {
 function getStackName() {
 	var info = chain.data;
 	
-	chain.syscall("getMemoryInfo", 572, stack_base, 0, info, 0x40);
+	chain.syscall("getOtherMemoryInfo", 572, stack_base, 0, info, 0x40);
 	
 	chain.execute(function() {
 		var base = getU64from(info + 0x0);
