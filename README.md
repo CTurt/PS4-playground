@@ -27,11 +27,18 @@ After executing a test, you should either refresh the page, or close and reopen 
 
 `Dump Loaded Module` - Dump a currently loaded module (use `Get Loaded Modules` to see all available)
 
-`Load and Dump Module` - Load an additional module and dump it (see all available [here](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76))
+`Load Module` - Load an additional module from [this list](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76)
 
-Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks, and convert to binary.
+`Load and Dump Module` - Load an additional module and then dump it (see all available [here](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76))
+
+Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks into a single binary.
 
 ### Filesystem
 `Open /dev/` - Get a list of devices
 
 `Get Sandbox Directory` - Get the name of the current sandbox directory (10 random characters which change each reboot)
+
+### Memory
+`Get Stack Protection` - Get stack base, size, and protection
+
+`Get Stack Name` - Get stack base, size, and name
