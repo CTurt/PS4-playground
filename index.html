@@ -41,17 +41,6 @@ function getlogin() {
 	});
 }
 
-function getSandboxDirectory() {
-	setU64to(chain.data, 10);
-	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
-	chain.write_rax_ToVariable(0);
-	
-	chain.execute(function() {
-		var name = readString(chain.data + 8);
-		logAdd(name);
-	});
-}
-
 function getLoadedModules() {
 	var countAddress = chain.data;
 	var modulesAddress = chain.data + 8;
@@ -183,6 +172,17 @@ function openDev() {
 	
 	chain.execute(function() {
 		logAdd(hexDump(contents, 256));
+	});
+}
+
+function getSandboxDirectory() {
+	setU64to(chain.data, 10);
+	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		var name = readString(chain.data + 8);
+		logAdd(name);
 	});
 }
 
