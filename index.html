@@ -218,26 +218,97 @@ function getStackName() {
 	});
 }
 
-function getLibkernelOffset() {
-	var functionName = document.getElementById("functionName").value;
+function socketSend() {
+
+	//convert base to base
+	function baseToBase (fromBase, toBase, value) {;
+		if(value=="")
+			value = 0;
+		value = parseInt(value, fromBase);
+		return Number(value).toString(toBase).toUpperCase();	
+	}
+
+	//hex escape bytes
+	function escapeToHex(str) {
+		var hex = '';
+		for(var i=0;i<str.length;) {
+			hex += '\\x'+str[i]+str[i+1];
+			i += 2
+		}
+		//have to eval so javascript processes the string for appending
+		return eval("ret = \""+hex+"\"")
+	}
+
+	var hostAddr = document.getElementById("hostAddr").value;
+	var hostPort = document.getElementById("hostPort").value;
+	var socketMessage = document.getElementById("socketMessage").value;
 	
-	if(!functionName) {
-		logAdd("Enter a function name");
-		document.getElementById("functionName").focus();
+	if(!hostAddr) {
+		logAdd("Enter an IP address");
+		document.getElementById("hostIP").focus();
 		return;
 	}
 	
-	var result = chain.data;
-	var name = chain.data + 8;
+	if(!hostPort) {
+		logAdd("Enter a port number");
+		document.getElementById("hostPort").focus();
+		return;
+	}
 	
-	writeString(name, functionName);
-	chain.syscall("getFunctionAddressByName", 591, LIBKERNEL, name, result);
-	
-	chain.execute(function() {
-		logAdd(readString(name) + " libkernel offset = 0x" + (getU64from(result) - module_infos[LIBKERNEL].image_base).toString(16));
-	});
-}
+	if(!socketMessage) {
+		logAdd("Enter a message");
+		document.getElementById("socketMessage").focus();
+		return;
+	}
 
+	var addr = hostAddr.split(".");
+	var decmAddr = parseInt(addr[0])*256*256*256+parseInt(addr[1])*256*256+parseInt(addr[2])*256+parseInt(addr[3]);
+	var hexAddr = parseInt(decmAddr).toString(16).toUpperCase();
+
+	hostAddrHex = escapeToHex(hexAddr);
+	hostPortHex = escapeToHex(baseToBase(10, 16, hostPort));
+
+	SCE_NET_AF_INET = 2
+	SCE_NET_SOCK_STREAM = 1
+	SCE_NET_SOCK_DGRAM = 2
+	SIZEOF_SIN = 16
+
+	socket_name = "\x74\x65\x73\x74\x5f\x73\x6f\x63\x6b\x65\x74\x00"; //test_socket\x00
+	struct_addr = "\x00\x02"; //sin_family;
+	struct_addr = struct_addr + hostPortHex; //sin_port;
+	struct_addr = struct_addr + hostAddrHex; //sin_addr;    
+	struct_addr = struct_addr + "\x00\x00\x00\x00\x00\x00\x00\x00"; //sin_zero[8]; 
+	
+	//newline to message
+	message = socketMessage + "\x0a\x00";
+
+	// locations of vars in mem
+	socket_name_loc = chain.data;
+	struct_addr_loc = chain.data + socket_name.length;
+	message_loc = chain.data + socket_name.length + struct_addr.length;
+
+	// write struct_addr and message for send()
+	writeString(chain.data, socket_name);
+	writeString(chain.data + socket_name.length, struct_addr);
+	writeString(chain.data + socket_name.length + struct_addr.length, message);
+
+	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("connect", SCENET, 0x3030, undefined, struct_addr_loc, SIZEOF_SIN);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("send", SCENET, 0x3060, undefined, message_loc, message.length, 0);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("close", SCENET, 0x3100, undefined);
+
+	chain.execute(function() {
+		logAdd("\"" + message + "\" sent to " + hostAddr + ":" + hostPort);
+	});
+	
+}
 		</script>
 	</head>
 	
@@ -265,32 +336,7 @@ function getLibkernelOffset() {
 					<button onclick="getlogin()">Get Login</button>
 				</div>
 			</div>
-			
-			<div class="box">
-				<h2>Modules</h2>
-				
-				<div>
-					<button onclick="getLoadedModules()">Get Loaded Modules</button>
-				</div>
-				
-				<br>
-				
-				<div>
-					Loaded Module ID (Get Loaded Modules):
-					<input type="number" id="loadedModuleID" />
-					<button onclick="dumpModule()">Dump Loaded Module</button>
-				</div>
-				
-				<br>
-				
-				<div>
-					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
-					<input type="number" id="moduleID" />
-					<button onclick="loadModule()">Load Module</button>
-					<button onclick="loadDumpModule()">Load and Dump Module</button>
-				</div>
-			</div>
-			
+						
 			<div class="box">
 				<h2>Filesystem</h2>
 				
@@ -319,12 +365,40 @@ function getLibkernelOffset() {
 			</div>
 			
 			<div class="box">
-				<h2>libkernel</h2>
+				<h2>Socket</h2>
 				<div>
-					<input type="text" value="getpid" id="functionName" />
-					<button onclick="getLibkernelOffset()">Get libkernel offset</button>
+					IP<input type="text" value="192.168.1.16" id="hostAddr" />
+					Port<input type="number" value="8888" id="hostPort" /><br>
+					Message<br><input type="text" size="50" value="Hello World from your PlaySation 4 :)" id="socketMessage" /><br>
+					<button onclick="socketSend()">Send message</button>
 				</div>
 			</div>
+			
+			<div class="box">
+				<h2>Modules</h2>
+				
+				<div>
+					<button onclick="getLoadedModules()">Get Loaded Modules</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Loaded Module ID (Get Loaded Modules):
+					<input type="number" id="loadedModuleID" />
+					<button onclick="dumpModule()">Dump Loaded Module</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					<input type="number" id="moduleID" />
+					<button onclick="loadModule()">Load Module</button>
+					<button onclick="loadDumpModule()">Load and Dump Module</button>
+				</div>
+			</div>
+
 		</div>
 		
 		<br><br>
