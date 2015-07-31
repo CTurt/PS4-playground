@@ -40,3 +40,6 @@ Once you have dumped a module, you will need to run `dir2bin.py` to combine all 
 `Get Stack Protection` - Get stack base, size, and protection
 
 `Get Stack Name` - Get stack base, size, and name
+
+### Socket
+`Socket` - Send a message to a specific IP and Port
