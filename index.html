@@ -219,24 +219,6 @@ function getStackName() {
 }
 
 function socketSend() {
-	// convert base to base
-	function baseToBase(fromBase, toBase, value) {
-		if(value == "") value = 0;
-		value = parseInt(value, fromBase);
-		return Number(value).toString(toBase).toUpperCase();	
-	}
-	
-	// hex escape bytes
-	function escapeToHex(str) {
-		var hex = '';
-		for(var i = 0; i < str.length; i += 2) {
-			hex += '\\x' + str[i] + str[i + 1];
-		}
-		
-		//have to eval so JavasSript processes the string for appending
-		return eval("ret = \"" + hex + "\"")
-	}
-	
 	var hostAddr = document.getElementById("hostAddr").value;
 	var hostPort = document.getElementById("hostPort").value;
 	var socketMessage = document.getElementById("socketMessage").value;
