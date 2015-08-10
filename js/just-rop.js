@@ -65,7 +65,7 @@ function rop() {
 		if(typeof(arg5) !== "undefined") this.add("pop r8", arg5);
 		if(typeof(arg6) !== "undefined") this.add("pop r9", arg6);
 		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
-		this.add("mov r10, rcx and syscall");
+		this.add("mov r10, rcx; syscall");
 	}
 	
 	this.call = function(name, module, address, arg1, arg2, arg3, arg4, arg5, arg6) {
