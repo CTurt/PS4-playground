@@ -219,26 +219,24 @@ function getStackName() {
 }
 
 function socketSend() {
-
-	//convert base to base
-	function baseToBase (fromBase, toBase, value) {;
-		if(value=="")
-			value = 0;
+	// convert base to base
+	function baseToBase(fromBase, toBase, value) {
+		if(value == "") value = 0;
 		value = parseInt(value, fromBase);
 		return Number(value).toString(toBase).toUpperCase();	
 	}
-
-	//hex escape bytes
+	
+	// hex escape bytes
 	function escapeToHex(str) {
 		var hex = '';
-		for(var i=0;i<str.length;) {
-			hex += '\\x'+str[i]+str[i+1];
-			i += 2
+		for(var i = 0; i < str.length; i += 2) {
+			hex += '\\x' + str[i] + str[i + 1];
 		}
-		//have to eval so javascript processes the string for appending
-		return eval("ret = \""+hex+"\"")
+		
+		//have to eval so JavasSript processes the string for appending
+		return eval("ret = \"" + hex + "\"")
 	}
-
+	
 	var hostAddr = document.getElementById("hostAddr").value;
 	var hostPort = document.getElementById("hostPort").value;
 	var socketMessage = document.getElementById("socketMessage").value;
@@ -260,38 +258,38 @@ function socketSend() {
 		document.getElementById("socketMessage").focus();
 		return;
 	}
-
+	
 	var addr = hostAddr.split(".");
-	var decmAddr = parseInt(addr[0])*256*256*256+parseInt(addr[1])*256*256+parseInt(addr[2])*256+parseInt(addr[3]);
+	var decmAddr = parseInt(addr[0]) * 256 * 256 * 256 + parseInt(addr[1]) * 256 * 256 + parseInt(addr[2]) * 256 + parseInt(addr[3]);
 	var hexAddr = parseInt(decmAddr).toString(16).toUpperCase();
-
+	
 	hostAddrHex = escapeToHex(hexAddr);
 	hostPortHex = escapeToHex(baseToBase(10, 16, hostPort));
-
-	SCE_NET_AF_INET = 2
-	SCE_NET_SOCK_STREAM = 1
-	SCE_NET_SOCK_DGRAM = 2
-	SIZEOF_SIN = 16
-
+	
+	SCE_NET_AF_INET = 2;
+	SCE_NET_SOCK_STREAM = 1;
+	SCE_NET_SOCK_DGRAM = 2;
+	SIZEOF_SIN = 16;
+	
 	socket_name = "\x74\x65\x73\x74\x5f\x73\x6f\x63\x6b\x65\x74\x00"; //test_socket\x00
 	struct_addr = "\x00\x02"; //sin_family;
 	struct_addr = struct_addr + hostPortHex; //sin_port;
 	struct_addr = struct_addr + hostAddrHex; //sin_addr;    
 	struct_addr = struct_addr + "\x00\x00\x00\x00\x00\x00\x00\x00"; //sin_zero[8]; 
 	
-	//newline to message
+	// newline to message
 	message = socketMessage + "\x0a\x00";
-
+	
 	// locations of vars in mem
 	socket_name_loc = chain.data;
 	struct_addr_loc = chain.data + socket_name.length;
 	message_loc = chain.data + socket_name.length + struct_addr.length;
-
+	
 	// write struct_addr and message for send()
 	writeString(chain.data, socket_name);
 	writeString(chain.data + socket_name.length, struct_addr);
 	writeString(chain.data + socket_name.length + struct_addr.length, message);
-
+	
 	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
 	chain.write_rax_ToVariable(0);
 	
@@ -303,11 +301,10 @@ function socketSend() {
 	
 	chain.read_rdi_FromVariable(0);
 	chain.call("close", SCENET, 0x3100, undefined);
-
+	
 	chain.execute(function() {
 		logAdd("\"" + message + "\" sent to " + hostAddr + ":" + hostPort);
 	});
-	
 }
 		</script>
 	</head>
@@ -367,10 +364,19 @@ function socketSend() {
 			<div class="box">
 				<h2>Socket</h2>
 				<div>
-					IP<input type="text" value="192.168.1.16" id="hostAddr" />
-					Port<input type="number" value="8888" id="hostPort" /><br>
-					Message<br><input type="text" size="50" value="Hello World from your PlaySation 4 :)" id="socketMessage" /><br>
-					<button onclick="socketSend()">Send message</button>
+					IP:
+					<input type="text" value="192.168.1.16" id="hostAddr" /><br>
+					<br>
+					
+					Port:
+					<input type="number" value="8888" id="hostPort" /><br>
+					<br>
+					
+					Message:
+					<input type="text" size="50" value="Hello from your PlayStation 4 :)" id="socketMessage" /><br>
+					<br>
+					
+					<button onclick="socketSend()">Send Message</button>
 				</div>
 			</div>
 			
