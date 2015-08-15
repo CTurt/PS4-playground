@@ -156,19 +156,22 @@ function loadDumpModule() {
 	});
 }
 
-function openDev() {
-	var directory = chain.data;
+function getPSN() {
+	var path = chain.data;
 	var contents = chain.data;
 	
-	writeString(directory, "/dev/");
-	chain.syscall("open", 5, directory, 0, 0);
+	writeString(path, "/user/home/10000000/np/account.dat");
+	chain.syscall("open", 5, path, 0, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.read_rdi_FromVariable(0);
 	chain.syscall("read", 3, undefined, contents, 1028);
 	
 	chain.execute(function() {
-		logAdd(hexDump(contents, 256));
+		setU8to(contents + 0x50, 0x20);
+		var name = readString(contents + 0x50).slice(1);
+		
+		logAdd("PSN username: " + name);
 	});
 }
 
@@ -317,7 +320,13 @@ function socketSend() {
 				<h2>Filesystem</h2>
 				
 				<div>
-					<button onclick="openDev()">Open /dev/</button>
+					<button onclick="window.location.assign('browser.html')">Browse</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="getPSN()">Get PSN username</button>
 				</div>
 				
 				<br>
@@ -390,8 +399,6 @@ function socketSend() {
 		
 		<hr>
 		
-		<div>
-			<div id="log"></div>
-		</div>
+		<div id="log"></div>
 	</body>
 </html>

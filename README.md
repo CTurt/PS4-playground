@@ -32,7 +32,9 @@ After executing a test, you should either refresh the page, or close and reopen 
 Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks into a single binary.
 
 ### Filesystem
-`Open /dev/` - Get a list of devices
+`Browse` - File Browser
+
+`Get PSN username` - Read your PSN username from `account.dat`
 
 `Get Sandbox Directory` - Get the name of the current sandbox directory (10 random characters which change each reboot)
 
