@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>PS4-playground</title>
+		
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+		
+		<script type="text/javascript" src="js/utils.js"></script>
+		<script type="text/javascript" src="js/exploit.js"></script>
+		<script type="text/javascript" src="js/dump.js"></script>
+		<script type="text/javascript" src="js/just-rop.js"></script>
+		<script type="text/javascript" src="js/gadgets.js"></script>
+		<script type="text/javascript">
+function load() {
+	document.getElementById("environment").innerHTML = getEnvironmentInfo();
+	exploit();
+	chain = new rop();
+	
+	var query = getQuery();
+	
+	var path = query.path;
+	var type = query.type;
+	
+	if(!path) {
+		path = "/";
+		type = 4;
+	}
+	else path = unescape(path);
+	
+	document.getElementById("path").innerHTML = path;
+	
+	read(path, type);
+}
+
+function read(path, type) {
+	var output = "<h2><a href=\"browser.html?path=" + path.substring(0, path.lastIndexOf("/")) + "&type=4\">Back</a></h2><br>";
+	
+	var directory = chain.data;
+	var contents = chain.data;
+	var size = 512;
+	
+	zeroMemory(chain.data, size);
+	
+	writeString(directory, path);
+	
+	chain.syscall("open", 5, directory, 0, 0);
+	chain.write_rax_ToVariable(0);
+	
+	// directory
+	if(type == 4) {
+		chain.read_rdi_FromVariable(0);
+		chain.syscall("getdents", 272, undefined, contents, size);
+	}
+	
+	// file or other
+	else {
+		chain.read_rdi_FromVariable(0);
+		chain.syscall("read", 3, undefined, contents, size);
+	}
+	
+	chain.read_rdi_FromVariable(0);
+	chain.syscall("close", 6, undefined);
+	
+	chain.execute(function() {
+		if(chain.getVariable(0) == 2) {
+			output += "Does not exist or is not readable";
+		}
+		else {
+			// directory
+			if(type == 4) {
+				var entry = contents;
+				
+				while(1) {
+					var length = getU8from(entry + 0x4);
+					if(length == 0) break;
+					
+					var etype = getU8from(entry + 0x6);
+					var name = readString(entry + 0x8);
+					
+					var newPath;
+					var namedType;
+					
+					// directory
+					if(etype == 4) {
+						namedType = "DIR";
+						
+						if(name == "..") {
+							newPath = path.substring(0, path.lastIndexOf("/"));
+						}
+						else if(name == ".") {
+							newPath = path;
+						}
+						else {
+							if(path.slice(-1) == "/") newPath = path + name;
+							else newPath = path + "/" + name;
+						}
+					}
+					
+					// file
+					else if(etype == 8) {
+						namedType = "FILE";
+						
+						if(path.slice(-1) == "/") newPath = path + name;
+						else newPath = path + "/" + name;
+					}
+					
+					// probably a device
+					else {
+						namedType = "OTHER";
+						
+						if(path.slice(-1) == "/") newPath = path + name;
+						else newPath = path + "/" + name;
+					}
+					
+					output += "<div>[" + namedType + "]: " + "<a href=\"browser.html?path=" + newPath + "&type=" + etype + "\">" + name + "</a>" + "</div>";
+					
+					entry += length;
+				}
+			}
+			else {
+				output += hexDump(contents, 512);
+			}
+		}
+		
+		document.getElementById("contents").innerHTML = output;
+	});
+}
+		</script>
+	</head>
+	
+	<body onload="load()">
+		<div class="header">
+			<h1>PS4 File Browser</h1>
+			<h2>CTurt, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
+			
+			<div id="environment"></div>
+		</div>
+		
+		<hr>
+		
+		<h1 id="path"></h1>
+		
+		<div id="contents" class="browser"></div>
+		
+		<br>
+		
+		<hr>
+		
+		<div id="log"></div>
+	</body>
+</html>
