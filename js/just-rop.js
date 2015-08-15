@@ -1,3 +1,5 @@
+var chain;
+
 function gadget(instructions, module, address) {
 	this.instructions = instructions;
 	this.relativeAddress = address;
