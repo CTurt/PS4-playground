@@ -107,6 +107,13 @@ function rop() {
 		return valueAddress;
 	}
 	
+	this.read_rax = function(address) {
+		var valueAddress = this.add("pop rax", address - 0x830) - 8;
+		this.add("mov rax, [rax+0x830]");
+		
+		return valueAddress;
+	}
+	
 	this.read_rdi = function(address) {
 		var valueAddress = this.add("pop rdi", address - 0x48) - 8;
 		this.add("mov rdi, [rdi+0x48]");
@@ -136,6 +143,7 @@ function rop() {
 	this.write_rax_ToVariable = function(n) { variableAddresses.push({ number: n, address: this.write_rax(0), offset: -0x18 }); }
 	this.write_rdi_ToVariable = function(n) { variableAddresses.push({ number: n, address: this.write_rdi(0), offset: -0x60 }); }
 	this.write_rdx_ToVariable = function(n) { variableAddresses.push({ number: n, address: this.write_rdx(0), offset: -0x1e8 }); }
+	this.read_rax_FromVariable = function(n) { variableAddresses.push({ number: n, address: this.read_rax(0), offset: -0x830 }); }
 	this.read_rdi_FromVariable = function(n) { variableAddresses.push({ number: n, address: this.read_rdi(0), offset: -0x48 }); }
 	
 	this.resolveVariables = function() {
