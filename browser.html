@@ -119,6 +119,8 @@ function read(path, type) {
 			}
 			else {
 				output += hexDump(contents, 512);
+				
+				output += "<button onclick=\"dump('name', 0x" + contents.toString(16) + ", " + size.toString() + ")\">Dump first " + size.toString() + " bytes</button>";
 			}
 		}
 		
