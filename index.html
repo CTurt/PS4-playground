@@ -242,7 +242,9 @@ function socketSend() {
 		return;
 	}
 	
-	sendMessage(hostAddr, hostPort, socketMessage, socketMessage.length);
+	//sendMessage(hostAddr, hostPort, socketMessage, socketMessage.length);
+	//sendBuffer(hostAddr, hostPort, libkernel.image_base, 0xFFFF);
+	sendBuffer(hostAddr, hostPort, libkernel.image_base, libkernel.image_size);
 	
 	chain.execute(function() {
 		logAdd("\"" + socketMessage + "\" sent to " + hostAddr + ":" + hostPort);
