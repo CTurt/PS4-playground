@@ -140,7 +140,13 @@ function read(path, type) {
 }
 
 function fileDump(contents, fsize) {
-	dump("name" + i.toString(), contents + i, 0x800 / 4);
+	chain = new rop();
+	
+	sendBuffer("192.168.0.4", 9023, contents, fsize);
+	
+	chain.execute(function() {
+		logAdd("Dumped");
+	});
 }
 		</script>
 	</head>
