@@ -21,6 +21,29 @@ function createAddressStruct(ip, port) {
 	return struct_addr;
 }
 
+function sendBuffer(hostAddr, hostPort, address, length) {
+	var socket_name = "test";
+	var socket_name_loc = chain.data;
+	
+	var struct_addr = createAddressStruct(hostAddr, hostPort);
+	var struct_addr_loc = socket_name_loc + socket_name.length;
+	
+	writeString(socket_name_loc, socket_name);
+	writeString(struct_addr_loc, struct_addr);
+	
+	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("connect", SCENET, 0x3030, undefined, struct_addr_loc, SIZEOF_SIN);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("send", SCENET, 0x3060, undefined, address, length, 0);
+	
+	chain.read_rdi_FromVariable(0);
+	chain.call("close", SCENET, 0x3100, undefined);
+}
+
 function sendMessage(hostAddr, hostPort, message, length) {
 	var socket_name = "test";
 	var socket_name_loc = chain.data;
