@@ -7,7 +7,6 @@
 		
 		<script type="text/javascript" src="js/utils.js"></script>
 		<script type="text/javascript" src="js/exploit.js"></script>
-		<script type="text/javascript" src="js/dump.js"></script>
 		<script type="text/javascript" src="js/network.js"></script>
 		<script type="text/javascript" src="js/just-rop.js"></script>
 		<script type="text/javascript" src="js/gadgets.js"></script>
@@ -51,15 +50,18 @@ function getLoadedModules() {
 		
 		var count = getU64from(countAddress);
 		
+		logAdd("Loaded modules:");
+		logAdd("Index - ID");
+		
 		for(var index = 0; index < count; index++) {
 			var m = getU32from(modulesAddress + index * 4);
 			
-			logAdd("Module: 0x" + m.toString(16) + " (" + m.toString() + ")");
+			logAdd(index.toString() + " - " + "0x" + m.toString(16) + " (" + m.toString() + ")");
 		}
 	});
 }
 
-function dumpModule() {
+function readModule() {
 	var moduleNumberV = document.getElementById("loadedModuleID").value;
 	
 	if(!moduleNumberV) {
@@ -84,10 +86,48 @@ function dumpModule() {
 		var moduleBase = codeBase;
 		var moduleSize = codeSize + dataSize;
 		
-		logAdd("Dumping " + moduleName);
+		logAdd("Name: " + moduleName);
 		logAdd("Size: " + moduleSize / 1024 + "KB");
-		
-		dump(moduleName, moduleBase, moduleSize);
+	});
+}
+
+function dumpModule() {
+	var hostAddr = document.getElementById("hostAddr").value;
+	var hostPort = document.getElementById("hostPort").value;
+	var socketMessage = document.getElementById("socketMessage").value;
+	
+	var moduleNumberV = document.getElementById("loadedModuleIndex").value;
+	
+	if(!moduleNumberV) {
+		logAdd("Enter a module number");
+		document.getElementById("moduleNumber").focus();
+		return;
+	}
+	
+	if(!hostAddr) {
+		logAdd("Enter an IP address");
+		document.getElementById("hostIP").focus();
+		return;
+	}
+	
+	if(!hostPort) {
+		logAdd("Enter a port number");
+		document.getElementById("hostPort").focus();
+		return;
+	}
+	
+	if(!socketMessage) {
+		logAdd("Enter a message");
+		document.getElementById("socketMessage").focus();
+		return;
+	}
+	
+	var moduleNumber = parseInt(moduleNumberV);
+	
+	sendBuffer(hostAddr, hostPort, module_infos[moduleNumber].image_base, module_infos[moduleNumber].image_size);
+	
+	chain.execute(function() {
+		logAdd("Dump sent to " + hostAddr + ":" + hostPort);
 	});
 }
 
@@ -119,41 +159,8 @@ function loadModule() {
 		
 		logAdd("Loaded " + moduleName);
 		logAdd("Size: " + moduleSize / 1024 + "KB");
-		logAdd("This module will only be loaded during this process, please now refresh to avoid a crash. Upon restart you must reload any extra module.");
+		logAdd("This module will only be loaded during this process, please now refresh to avoid a crash (then you can dump it). Upon restart you must reload any extra module.");
 		logAdd("You can only load a single extra module, if you wish to load a different module restart the browser process.");
-	});
-}
-
-function loadDumpModule() {
-	var moduleNumberV = document.getElementById("moduleID").value;
-	
-	if(!moduleNumberV) {
-		logAdd("Enter a module number");
-		document.getElementById("moduleNumber").focus();
-		return;
-	}
-	
-	var moduleNumber = parseInt(moduleNumberV);
-	
-	var moduleInfoAddress = chain.data;
-	setU64to(moduleInfoAddress, 0x160);
-	
-	chain.call("loadModule", LIBSYSMODULE, 0x1850, moduleNumber, 0, 0, 0);
-	chain.syscall("getModuleInfo", 0, 593, 0x65, moduleInfoAddress);
-	
-	chain.execute(function() {
-		var moduleName = readString(moduleInfoAddress + 0x8);
-		var codeBase = getU64from(moduleInfoAddress + 0x108);
-		var codeSize = getU32from(moduleInfoAddress + 0x110);
-		var dataBase = getU64from(moduleInfoAddress + 0x118);
-		var dataSize = getU32from(moduleInfoAddress + 0x120);
-		var moduleBase = codeBase;
-		var moduleSize = codeSize + dataSize;
-		
-		logAdd("Dumping " + moduleName);
-		logAdd("Size: " + moduleSize / 1024 + "KB");
-		
-		dump(moduleName, moduleBase, moduleSize);
 	});
 }
 
@@ -242,9 +249,7 @@ function socketSend() {
 		return;
 	}
 	
-	//sendMessage(hostAddr, hostPort, socketMessage, socketMessage.length);
-	//sendBuffer(hostAddr, hostPort, libkernel.image_base, 0xFFFF);
-	sendBuffer(hostAddr, hostPort, libkernel.image_base, libkernel.image_size);
+	sendMessage(hostAddr, hostPort, socketMessage, socketMessage.length);
 	
 	chain.execute(function() {
 		logAdd("\"" + socketMessage + "\" sent to " + hostAddr + ":" + hostPort);
@@ -312,7 +317,7 @@ function socketSend() {
 			</div>
 			
 			<div class="box">
-				<h2>Socket</h2>
+				<h2>Server</h2>
 				<div>
 					IP:
 					<input type="text" value="192.168.0.4" id="hostAddr" /><br>
@@ -321,40 +326,51 @@ function socketSend() {
 					Port:
 					<input type="number" value="9023" id="hostPort" /><br>
 					<br>
+				</div>
+				
+				<div class="box">
+					<h2>Sockets</h2>
+					<div>
+						Message:
+						<input type="text" size="50" value="Hello from your PlayStation 4 :)" id="socketMessage" /><br>
+						<br>
+						
+						<button onclick="socketSend()">Send Message</button>
+					</div>
+				</div>
+				
+				<div class="box">
+					<h2>Modules</h2>
 					
-					Message:
-					<input type="text" size="50" value="Hello from your PlayStation 4 :)" id="socketMessage" /><br>
+					<div>
+						<button onclick="getLoadedModules()">Get Loaded Modules</button>
+					</div>
+					
 					<br>
 					
-					<button onclick="socketSend()">Send Message</button>
+					<div>
+						Loaded Module ID (Get Loaded Modules):
+						<input type="number" id="loadedModuleID" />
+						<button onclick="readModule()">Read Loaded Module</button>
+					</div>
+					
+					<br>
+					
+					<div>
+						Loaded Module Index (Get Loaded Modules):
+						<input type="number" id="loadedModuleIndex" />
+						<button onclick="dumpModule()">Dump Loaded Module</button>
+					</div>
+					
+					<br>
+					
+					<div>
+						Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+						<input type="number" id="moduleID" />
+						<button onclick="loadModule()">Load Module</button>
+					</div>
 				</div>
 			</div>
-			
-			<div class="box">
-				<h2>Modules</h2>
-				
-				<div>
-					<button onclick="getLoadedModules()">Get Loaded Modules</button>
-				</div>
-				
-				<br>
-				
-				<div>
-					Loaded Module ID (Get Loaded Modules):
-					<input type="number" id="loadedModuleID" />
-					<button onclick="dumpModule()">Dump Loaded Module</button>
-				</div>
-				
-				<br>
-				
-				<div>
-					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
-					<input type="number" id="moduleID" />
-					<button onclick="loadModule()">Load Module</button>
-					<button onclick="loadDumpModule()">Load and Dump Module</button>
-				</div>
-			</div>
-
 		</div>
 		
 		<br><br>
