@@ -2,9 +2,9 @@
 A collection of PS4 tools and experiments using the WebKit exploit. This is for firmware 1.76 only at the moment.
 
 ## Setup
-A live demo can be tried [here](http://cturt.github.io/PS4-playground/), without module dumping.
+A live demo can be tried [here](http://cturt.github.io/PS4-playground/).
 
-You should clone the repo and upload it your own server to have module dumping capabilities:
+You should clone the repo and upload it your own server if you wish to make changes:
 
     git clone git://github.com/CTurt/PS4-playground.git
 
@@ -21,15 +21,13 @@ After executing a test, you should either refresh the page, or close and reopen 
 `Get Login` - Get login name and leak a kernel pointer
 
 ### Modules
-`Get Loaded Modules` - Get a list of currently loaded modules
+`Get Loaded Modules` - Get a list of currently loaded modules, index and ID
 
 `Dump Loaded Module` - Dump a currently loaded module (use `Get Loaded Modules` to see all available)
 
 `Load Module` - Load an additional module from [this list](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76)
 
-`Load and Dump Module` - Load an additional module and then dump it (see all available [here](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76))
-
-Once you have dumped a module, you will need to run `dir2bin.py` to combine all chunks into a single binary.
+Once you have loaded a module, refresh the page, and you will be able to dump it.
 
 ### Filesystem
 `Browse` - File Browser
@@ -45,3 +43,8 @@ Once you have dumped a module, you will need to run `dir2bin.py` to combine all 
 
 ### Socket
 `Send Message` - Send a TCP message to the specified IP and port
+
+## Receiving data
+File and memory dumps will be sent over TCP to the IP and port you specified.
+
+You can use a simple tool like [TCP-Dump](https://github.com/CTurt/TCP-Dump) to write the data to a file.
