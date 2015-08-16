@@ -37,9 +37,10 @@ function read(path, type) {
 	
 	var directory = chain.data;
 	var contents = chain.data;
-	var size = 512;
+	var fsize = 0x100000;
+	var dsize = 512;
 	
-	zeroMemory(chain.data, size);
+	zeroMemory(chain.data, dsize);
 	
 	writeString(directory, path);
 	
@@ -49,13 +50,21 @@ function read(path, type) {
 	// directory
 	if(type == 4) {
 		chain.read_rdi_FromVariable(0);
-		chain.syscall("getdents", 272, undefined, contents, size);
+		chain.syscall("getdents", 272, undefined, contents, dsize);
 	}
 	
 	// file or other
 	else {
+		//chain.syscall("mmap", 477, 0, 4096, 1 | 2, 4096, -1, 0);
+		//chain.write_rax_ToVariable(1);
+		
+		//chain.add("pop rcx", "ret");
+		//chain.add("mov rsi, rax; jmp rcx");
+		
 		chain.read_rdi_FromVariable(0);
-		chain.syscall("read", 3, undefined, contents, size);
+		
+		//chain.syscall("read", 3, undefined, undefined, size);
+		chain.syscall("read", 3, undefined, contents, fsize);
 	}
 	
 	chain.read_rdi_FromVariable(0);
@@ -118,9 +127,11 @@ function read(path, type) {
 				}
 			}
 			else {
+				//contents = chain.getVariable(1);
+				
 				output += hexDump(contents, 512);
 				
-				output += "<button onclick=\"dump('name', 0x" + contents.toString(16) + ", " + size.toString() + ")\">Dump first " + size.toString() + " bytes</button>";
+				output += "<button onclick=\"dump('name', 0x" + contents.toString(16) + ", " + fsize.toString() + ")\">Dump first " + fsize.toString() + " bytes</button>";
 			}
 		}
 		
