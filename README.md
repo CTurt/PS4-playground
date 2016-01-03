@@ -13,7 +13,18 @@ You can also download a zip of the latest source [here](https://github.com/CTurt
 ## Usage
 Although this is this primarily a framework to help write and execute ROP chains, PS4-playground comes with several experiments for you to try.
 
-After executing a test, you should either refresh the page, or close and reopen the browser entirely; running multiple experiments sequentially is not reliable.
+After executing a test, you should either refresh the page, or close and reopen the browser entirely; running multiple experiments sequentially is not reliable. If you are using a web browser view in an app which isn't the Internet Browser, you can use the `Refresh` button under `Misc` to refresh the page.
+
+### Code Execution
+Click "Go", and wait for the text "Stage: Waiting for payload..." to appear.
+
+Send the desired binary over TCP to your PS4 on port 9023; you can use any standard networking tool to do this, or my custom Windows tool, [WiFi-Loader](https://github.com/CTurt/WiFi-Loader)
+
+If you're on Linux, the easiest way is probably to use `netcat`:
+
+    nc -w 3 192.168.0.7 9023 < *.bin
+
+After you have sent the binary, it will be executed automatically.
 
 ### Syscalls
 `Get PID` - Get process ID

