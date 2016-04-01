@@ -28,6 +28,15 @@ If you're on Linux, the easiest way is probably to use `netcat`:
 
 After you have sent the binary, it will be executed automatically.
 
+### Linux loader
+You need a FAT32 formatted USB drive plugged in on any PS4's USB port with the following files on the root directory:
+
+`bzImage` : Kernel image that will be loaded. Recommended to use [this sources](https://github.com/fail0verflow/ps4-linux/tree/ps4-xhci-wip) to compile it.
+
+`initramfs.cpio.gz` : The initial file system that gets loaded into memory during the Linux startup process. [This one](https://github.com/slashbeast/better-initramfs) is recommended.
+
+The file names must match with the above and you can have more files on the same USB drive. From there you can setup the environment to run from an NFS share or from an external drive via USB (recommended) and boot a complete distro!
+
 ### Syscalls
 `Get PID` - Get process ID
 

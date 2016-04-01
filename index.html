@@ -120,9 +120,11 @@ function payload() {
 	//setU32to(writeAddress + 1 * 4, 0x4801e883);
 	//setU32to(writeAddress + 2 * 4, 0xf775c085);
 	//setU32to(writeAddress + 3 * 4, 0x000000c3);
-	
-	// WiFi-Loader
-	writeLoader(writeAddress);
+
+	if(sessionStorage.loadlinux == 1)
+		writeLinux(writeAddress) // Linux-loader
+	else
+		writeLoader(writeAddress); // WiFi-Loader
 	
 	chain.start(executeAddress);
 	chain.write_rax_ToVariable(0);
@@ -519,13 +521,21 @@ function socketSend() {
 		logAdd("\"" + socketMessage + "\" sent to " + hostAddr + ":" + hostPort);
 	});
 }
+
+function launchLinux() {
+	cleanSessionVars();
+	sessionStorage.loadlinux = 1;
+	allocateSharedMemory();
+
+	setTimeout(function() { document.cookie = "codeExecutionStage=1.1"; location.reload(); }, 10);
+}
 		</script>
 	</head>
 	
 	<body onload="load()">
 		<div class="header">
 			<h1>PS4 WebKit Playground</h1>
-			<h2>CTurt, flatz, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
+			<h2>CTurt, kR105, flatz, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
 			
 			<div id="environment"></div>
 		</div>
@@ -665,6 +675,21 @@ function socketSend() {
 					Module name (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
 					<input type="text" id="moduleName" value="libSceGnmDriver.sprx" />
 					<button onclick="loadNamedModule()">Load Module</button>
+				</div>
+			</div>
+
+			<div class="box">
+				<h2>Linux loader</h2>
+
+				<div>
+					Make sure to have files <b>initramfs.cpio.gz</b> and <b>bzImage</b> <br/>
+					on a USB drive connected to the PS4 before loading this.	
+				</div>
+
+				<br>
+
+				<div>
+					<button onclick="launchLinux()">Load!</button>
 				</div>
 			</div>
 			
