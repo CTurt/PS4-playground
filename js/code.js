@@ -156,6 +156,8 @@ function writeLoader(write) {
 	u32[150] = 0x00000000;
 }
 
+// https://github.com/kR105/PS4-dlclose
+// https://github.com/fail0verflow/ps4-kexec
 function writeLinux(write) {
 	setBase(write);
 	u32[0] = 0x00075be9;
