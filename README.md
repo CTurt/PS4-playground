@@ -1,7 +1,7 @@
 # PS4-playground
 A collection of PS4 tools and experiments using the WebKit exploit. This is for firmware 1.76 only at the moment.
 
-It can be used to run to run binaries compiled with the [PS4-SDK](https://github.com/CTurt/PS4-SDK).
+Although initially just a framework to help write and execute ROP chains, the playground now allows for running unsigned binaries compiled with the [PS4-SDK](https://github.com/CTurt/PS4-SDK), and booting Linux from USB.
 
 ## Setup
 A live demo can be tried [here](http://cturt.github.io/PS4-playground/).
@@ -13,8 +13,6 @@ You should clone the repo and upload it your own server if you wish to make chan
 You can also download a zip of the latest source [here](https://github.com/CTurt/PS4-playground/archive/gh-pages.zip).
 
 ## Usage
-Although this is this primarily a framework to help write and execute ROP chains, PS4-playground comes with several experiments for you to try.
-
 After executing a test, you should either refresh the page, or close and reopen the browser entirely; running multiple experiments sequentially is not reliable. If you are using a web browser view in an app which isn't the Internet Browser, you can use the `Refresh` button under `Misc` to refresh the page.
 
 ### Code Execution
