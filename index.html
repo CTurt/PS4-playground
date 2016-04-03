@@ -557,6 +557,21 @@ function launchLinux() {
 			</div>
 			
 			<div class="box">
+				<h2>Linux loader</h2>
+
+				<div>
+					Make sure to have files <b>initramfs.cpio.gz</b> and <b>bzImage</b> <br/>
+					on a USB drive connected to the PS4 before loading this.	
+				</div>
+
+				<br>
+
+				<div>
+					<button onclick="launchLinux()">Load!</button>
+				</div>
+			</div>
+			
+			<div class="box">
 				<h2>Code execution</h2>
 				
 				<div>
@@ -675,21 +690,6 @@ function launchLinux() {
 					Module name (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
 					<input type="text" id="moduleName" value="libSceGnmDriver.sprx" />
 					<button onclick="loadNamedModule()">Load Module</button>
-				</div>
-			</div>
-
-			<div class="box">
-				<h2>Linux loader</h2>
-
-				<div>
-					Make sure to have files <b>initramfs.cpio.gz</b> and <b>bzImage</b> <br/>
-					on a USB drive connected to the PS4 before loading this.	
-				</div>
-
-				<br>
-
-				<div>
-					<button onclick="launchLinux()">Load!</button>
 				</div>
 			</div>
 			
