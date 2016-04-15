@@ -45,7 +45,7 @@ The file names must match with the above and you can have more files on the same
 
 `Dump Loaded Module` - Dump a currently loaded module (use `Get Loaded Modules` to see all available)
 
-`Load Module` - Load an additional module from [this list](http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76)
+`Load Module` - Load an additional module from [this list](http://www.psdevwiki.com/ps4/Libraries#Libraries_on_firmware_1.76)
 
 Once you have loaded a module, refresh the page, and you will be able to dump it.
 
